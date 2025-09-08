@@ -1,4 +1,4 @@
-name: DnsBlackList-rs Docker build and push to ghcr.io
+name: DnsLiar Docker build and push to ghcr.io
 
 on:
   push:
@@ -41,8 +41,8 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
-          file: DnsBlackList-rs/Dockerfile
-          context: DnsBlackList-rs/
+          file: DnsLiar/Dockerfile
+          context: DnsLiar/
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

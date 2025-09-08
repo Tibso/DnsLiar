@@ -1,4 +1,4 @@
-use dnsblrsd::resolver::{self, Records};
+use dnsliar::resolver::{self, Records};
 
 use std::{str::FromStr, net::Ipv4Addr};
 use hickory_proto::{

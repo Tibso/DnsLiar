@@ -18,17 +18,17 @@ env:
 
 defaults:
   run:
-    working-directory: ./DnsBlackList-rs
+    working-directory: ./DnsLiar
 
 jobs:
-  dnsblrsd:
+  dnsliar:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Build dnsblrsd
-        run: cargo build -p dnsblrsd --verbose --features misp
-      - name: Test dnsblrsd
-        run: cargo test -p dnsblrsd --verbose --features misp
+      - name: Build dnsliar
+        run: cargo build -p dnsliar --verbose --features misp
+      - name: Test dnsliar
+        run: cargo test -p dnsliar --verbose --features misp
 
   redis-ctl:
     runs-on: ubuntu-latest

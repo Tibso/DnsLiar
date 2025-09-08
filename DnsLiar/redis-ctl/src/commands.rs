@@ -5,7 +5,7 @@ use clap::{Parser, Subcommand};
 #[derive(Parser)]
 #[command(about = "This is a command-line tool used to manipulate the Redis blacklist", long_about = None)]
 pub struct Args {
-    /// Path to dnsblrsd.conf is required
+    /// Path to dnsliar.conf is required
     #[arg(required = true)]
     pub path_to_confile: PathBuf,
 

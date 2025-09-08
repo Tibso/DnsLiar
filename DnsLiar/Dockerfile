@@ -19,8 +19,8 @@ COPY redis-ctl/ redis-ctl/
 RUN cargo fetch
 
 # Build the binary
-RUN cargo build --release -p dnsblrsd --target x86_64-unknown-linux-musl
-#RUN cargo build --release -p dnsblrsd --features misp --target x86_64-unknown-linux-musl
+RUN cargo build --release -p dnsliar --target x86_64-unknown-linux-musl
+#RUN cargo build --release -p dnsliar --features misp --target x86_64-unknown-linux-musl
 RUN cargo build --release -p redis-ctl --target x86_64-unknown-linux-musl
 
 FROM alpine:latest
@@ -29,13 +29,13 @@ RUN apk update \
     apk add netcat-openbsd
 
 # copy the binaries and make them executable
-COPY --from=builder /usr/src/target/x86_64-unknown-linux-musl/release/dnsblrsd /usr/local/bin/dnsblrsd
+COPY --from=builder /usr/src/target/x86_64-unknown-linux-musl/release/dnsliar /usr/local/bin/dnsliar
 COPY --from=builder /usr/src/target/x86_64-unknown-linux-musl/release/redis-ctl /usr/local/bin/redis-ctl
-RUN chmod +x /usr/local/bin/dnsblrsd /usr/local/bin/redis-ctl
+RUN chmod +x /usr/local/bin/dnsliar /usr/local/bin/redis-ctl
 
-WORKDIR /etc/dnsblrsd
+WORKDIR /etc/dnsliar
 # we also need to copy the blacklist sources for the first initialization
-COPY blacklist_sources.json /var/lib/dnsblrsd/blacklist_sources.json
+COPY blacklist_sources.json /var/lib/dnsliar/blacklist_sources.json
 
 COPY startup.sh /usr/local/bin/startup.sh
 RUN chmod +x /usr/local/bin/startup.sh

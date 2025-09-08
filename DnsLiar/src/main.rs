@@ -1,6 +1,6 @@
 #![forbid(unsafe_code)]
 
-use dnsblrsd::{config, log, redis_mod, resolver, handler, signals, features::misp, VERSION};
+use dnsliar::{config, log, redis_mod, resolver, handler, signals, features::misp, VERSION};
 
 use std::{process::ExitCode, sync::Arc};
 use hickory_server::ServerFuture;

@@ -10,7 +10,7 @@ use tracing::{info, warn, error};
 use serde::Deserialize;
 use serde_norway::from_str;
 
-pub const CONFILE: &str = "dnsblrsd.conf";
+pub const CONFILE: &str = "dnsliar.conf";
 const TCP_TIMEOUT: Duration = Duration::from_secs(10);
 
 /// The main config structure

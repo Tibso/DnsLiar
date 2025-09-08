@@ -4,7 +4,7 @@ mod commands;
 mod modules;
 
 use crate::{commands::{Args, Commands}, modules::rules};
-use dnsblrsd::config::Config;
+use dnsliar::config::Config;
 
 use clap::Parser;
 use redis::Client;

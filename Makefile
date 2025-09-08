@@ -10,7 +10,7 @@ build:
 	@docker compose build
 
 logs:
-	@docker compose logs -f dnsblrsd valkey
+	@docker compose logs -f dnsliar valkey
 
 start:
 	@docker compose start
@@ -18,11 +18,11 @@ start:
 stop:
 	@docker compose stop
 
-godnsblrsd:
-	@docker exec -it dnsblrsd sh
+godnsliar:
+	@docker exec -it dnsliar sh
 
 govalkey:
 	@docker exec -it valkey sh
 
-.PHONY: run build stop start logs build godnsblrsd govalkey
+.PHONY: run build stop start logs build godnsliar govalkey
 

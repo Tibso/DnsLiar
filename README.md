@@ -2,7 +2,7 @@
 
 DNS forwarder with blacklist using [Hickory DNS](https://github.com/hickory-dns/hickory-dns) and [Redis-rs](https://github.com/redis-rs/redis-rs) (currently using Valkey as server).
 
-This DNS forwarder **filters queries** using a **blacklist**. The forwarder **blocks** DNS requests querying for **unwanted domains** to **protect** its **users** from them.
+This DNS forwarder **filters queries** using a **blacklist**. It **blocks** DNS requests querying for **unwanted domains** to **protect** its **users** from them.
 
 # 🚀 **Quick start** 🚀
 
@@ -11,8 +11,8 @@ Prerequisites: **git**, **docker**
 **Clone** this repository and **make** it:
 
 ```sh
-git clone https://github.com/Tibso/DnsBlackList-rs.github
-cd DnsBlackList-rs/
+git clone https://github.com/Tibso/DnsLiar.github
+cd DnsLiar/
 make
 ```
 
@@ -52,34 +52,16 @@ The **returned IPs** are still filtered against the **IP blacklist**.
 
 A rule **defines** a **domain** or **IP** that must be blocked.
 
-### **Domain rule** ###
-
 + [HASH] DBL;D;adult;i.built.that.fire.over.there.com
-
-  + **enabled**
-
-**1** or **0**, indicates an **enabled/disabled** rule.
-
-  + **date**
-
-The **date** when the **rule** was **added** to the blacklist.
-
-  + **src**
-
-The **source** where the rule **originates** from.
-
-### **IP rule**
-
 + [HASH] DBL;I;malware;198.51.100.42
 
-  + **enabled**
-  + **date**
-  + **src**
+  + **enabled** : *1* - ***1** or **0**, indicates an **enabled/disabled** rule.*
+  + **date** : *2025-09-05-17:18* - *The **date** when the **rule** was **added** to the blacklist.*
+  + **src** : *firebog* - *The **source** where the rule **originates** from.*
 
 # 🛠️ **Redis-ctl** 🛠️
 
-Note: This tool still contains parts of a temporarily removed feature, the handling of v4 and v6 separately for domain.
-I'd like to reimplement this feature and others properly.
+***Note**: This tool still contains parts of a temporarily removed feature, the handling of v4 and v6 separately for domains.*
 
 ```
 This is a command-line tool used to manipulate the Redis blacklist
@@ -99,7 +81,7 @@ Commands:
   help                 Print this message or the help of the given subcommand(s)
 
 Arguments:
-  <PATH_TO_CONFILE>  Path to dnsblrsd.conf is required
+  <PATH_TO_CONFILE>  Path to dnsliar.conf is required
 
 Options:
   -h, --help  Print help

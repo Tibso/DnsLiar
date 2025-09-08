@@ -7,7 +7,7 @@ Possible future improvements:
 - remove hickory_dns dependency
 - live full configuration reload without dropping requests
 
-# dnsblrsd
+# dnsliar
 
 - graceful shutdown
 - implement commented features
