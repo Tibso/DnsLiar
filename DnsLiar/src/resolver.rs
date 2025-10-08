@@ -89,7 +89,7 @@ pub async fn resolve(
                     => { header.set_response_code(ResponseCode::NotImp); },
                 ProtoErrorKind::NoRecordsFound { response_code, soa, ns, .. }
                     => {
-                        if matches!(response_code, ResponseCode::NXDomain | ResponseCode::NoError) {
+                        if matches!(response_code, ResponseCode::NXDomain | ResponseCode::NoError | ResponseCode::ServFail) {
                             header.set_response_code(*response_code);
                         } else {
                             return Err(DnsBlrsError::Proto(proto_err.clone()))

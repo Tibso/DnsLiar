@@ -10,7 +10,7 @@ build:
 	@docker compose build
 
 logs:
-	@docker compose logs -f dnsliar valkey
+	@docker compose logs -f
 
 start:
 	@docker compose start
