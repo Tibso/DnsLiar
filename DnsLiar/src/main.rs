@@ -49,10 +49,10 @@ async fn main() -> ExitCode {
         return ExitCode::from(71) // OSERR
     };
 
-    if cfg!(feature = "misp") {
-        if let Some(misp_api_conf) = config.misp_api_conf {
-            tokio::spawn(misp::update(misp_api_conf, redis_mngr.clone()));
-        }
+    if cfg!(feature = "misp")
+        && let Some(misp_api_conf) = config.misp_api_conf
+    {
+        tokio::spawn(misp::update(misp_api_conf, redis_mngr.clone()));
     }
 
     let signals_task = tokio::task::spawn(signals::handle(signals, resolver));
