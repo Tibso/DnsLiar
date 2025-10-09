@@ -1,12 +1,16 @@
 all: run
 
 run:
-	@docker compose down
+	@docker compose down -v
 	@docker compose build
 	@docker compose up -d
+	@docker compose logs -f
+
+down:
+	@docker compose down -v
 
 build:
-	@docker compose down
+	@docker compose down -v
 	@docker compose build
 
 logs:
@@ -24,5 +28,5 @@ godnsliar:
 govalkey:
 	@docker exec -it valkey sh
 
-.PHONY: run build stop start logs build godnsliar govalkey
+.PHONY: run down build stop start logs build godnsliar govalkey
 

@@ -266,8 +266,9 @@ fn feed_from_reader<R: BufRead>(
     let fields = [("enabled", "1"), ("date", &date), ("src", src)];
 
     let mut lines_acc: u64 = 0;
-    let mut add_acc: u64 = 0;
+    let mut q_sent_acc: u64 = 0;
 
+    let mut pipe = pipe();
     for bytes in reader.split(b'\n') {
         lines_acc += 1;
 
@@ -288,28 +289,36 @@ fn feed_from_reader<R: BufRead>(
                 && is_public_ip(&ip)
             {
                 let key = format!("DBL;I;{filter};{item}");
-                if pipe()
-                    .hset_multiple(&key, &fields)
-                    .expire(&key, secs_to_expiry)
-                    .exec(con)
-                    .is_ok()
-                {
-                    add_acc += 1;
-                }
-            } else if is_valid_domain(item) {
+                pipe.hset_multiple(&key, &fields)
+                    .expire(&key, secs_to_expiry);
+            }
+            else if is_valid_domain(item) {
                 let key = format!("DBL;D;{filter};{item}");
-                if pipe()
-                    .hset_multiple(&key, &fields)
-                    .expire(&key, secs_to_expiry)
-                    .exec(con)
-                    .is_ok()
-                {
-                    add_acc += 1;
+                pipe.hset_multiple(&key, &fields)
+                    .expire(&key, secs_to_expiry);
+            }
+
+            let pipe_len = pipe.len();
+            #[allow(clippy::collapsible_if)]
+            if pipe_len >= 10000 {
+                if let Err(e) = pipe.exec(con) {
+                    println!("WARN: {e}\nWARN: {pipe_len} queries left in pipe queue");
+                } else {
+                    q_sent_acc += pipe_len as u64;
+                    pipe.clear();
                 }
             }
         }
     }
-    println!("{add_acc} rule(s) added | {lines_acc} lines parsed");
+    #[allow(clippy::collapsible_if)]
+    if !pipe.is_empty() {
+        if let Err(e) = pipe.exec(con) {
+            println!("ERR: {e}\nERR: {} queries lost", pipe.len());
+        } else {
+            q_sent_acc += pipe.len() as u64;
+        }
+    }
+    println!("{q_sent_acc} queries to DB | {lines_acc} lines parsed");
     Ok(ExitCode::SUCCESS)
 }
 
