@@ -11,7 +11,7 @@ Prerequisites: **git**, **docker**
 **Clone** this repository and **make** it:
 
 ```sh
-git clone https://github.com/Tibso/DnsLiar.github
+git clone https://github.com/Tibso/DnsLiar.git
 cd DnsLiar/
 make
 ```

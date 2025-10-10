@@ -5,7 +5,7 @@ use std::{
     io::{BufRead, BufReader, Cursor},
     net::{IpAddr, Ipv4Addr, Ipv6Addr},
     path::PathBuf,
-    process::ExitCode,
+    process::ExitCode
 };
 
 use super::{get_date, is_valid_domain, is_public_ip, time_abrv_to_secs};
@@ -269,7 +269,7 @@ fn feed_from_reader<R: BufRead>(
     let mut q_sent_acc: u64 = 0;
 
     let mut pipe = pipe();
-    for bytes in reader.split(b'\n') {
+    'lines: for bytes in reader.split(b'\n') {
         lines_acc += 1;
 
         let Ok(bytes) = bytes else {
@@ -284,15 +284,22 @@ fn feed_from_reader<R: BufRead>(
             continue; // not fastest conversion but safe and has ascii optimizations -- forbid unsafe
         };
 
-        for item in line.split_whitespace() {
-            if let Ok(ip) = item.parse::<IpAddr>()
-                && is_public_ip(&ip)
-            {
+        let comments = ['#', '!', '%'];
+        let trimmed_line = line.trim_matches(|c| c == ' ' || c == '^' || c == '|');
+        if trimmed_line.starts_with(comments) {
+            continue;
+        }
+
+        for item in trimmed_line.split_whitespace() {
+            if item.starts_with(comments) {
+                continue 'lines;
+            }
+
+            if let Ok(ip) = item.parse::<IpAddr>() && is_public_ip(&ip) {
                 let key = format!("DBL;I;{filter};{item}");
                 pipe.hset_multiple(&key, &fields)
                     .expire(&key, secs_to_expiry);
-            }
-            else if is_valid_domain(item) {
+            } else if is_valid_domain(item) {
                 let key = format!("DBL;D;{filter};{item}");
                 pipe.hset_multiple(&key, &fields)
                     .expire(&key, secs_to_expiry);

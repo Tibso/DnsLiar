@@ -1,18 +1,22 @@
 # For both
 
-- add possibility that retention time could simply be "3m"
+- decide whether updating DB should be a task inside dnsliar or it should use the external ctl tool
+- config should allow the possibility of subscribing to all available filters
+- TTL and retention time should handle definition such as "1d","1m","1y"
 
 Possible future improvements:
-- remove Redis dependency
 - remove hickory_dns dependency
+- remove Redis dependency
 - live full configuration reload without dropping requests
 
 # dnsliar
 
+- add a debug level of log? configure a default level in docker-compose
 - graceful shutdown
 - implement commented features
 - make resolver per forwarder and run in own thread/task
 
 # redis-ctl
 
-- add possiblity that TTL will simply be an int instead of "1d","1m","1y"
+- tool should support the adblock filter list format
+- make redis-ctl commands faster by accounting for "*" for scan or simple hget
