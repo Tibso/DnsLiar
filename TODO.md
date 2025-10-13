@@ -3,6 +3,7 @@
 - decide whether updating DB should be a task inside dnsliar or it should use the external ctl tool
 - config should allow the possibility of subscribing to all available filters
 - TTL and retention time should handle definition such as "1d","1m","1y"
+- comment out or fully reimplement the filtering of v4 and v6 separately
 
 Possible future improvements:
 - remove hickory_dns dependency
@@ -18,5 +19,4 @@ Possible future improvements:
 
 # redis-ctl
 
-- tool should support the adblock filter list format
-- make redis-ctl commands faster by accounting for "*" for scan or simple hget
+- make redis-ctl commands faster by accounting for "*" for scan or simple hget 

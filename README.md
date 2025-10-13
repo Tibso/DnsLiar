@@ -27,8 +27,8 @@ make
 + [x] It works
 + [ ] Satisfactory initial blacklist (ficsit~ by suggesting URLs)
 + [ ] Sufficiently stable for a v1.0 release
-+ [ ] No Redis dependency
 + [ ] No Hickory DNS dependency
++ [ ] No Redis dependency
 + [ ] Each thread is fully independent, not sharing a connection object
 
 # ⚙️ **What does it do?** ⚙️
@@ -52,7 +52,7 @@ The **returned IPs** are still filtered against the **IP blacklist**.
 
 A rule **defines** a **domain** or **IP** that must be blocked.
 
-+ [HASH] DBL;D;adult;i.built.that.fire.over.there.com
++ [HASH] DBL;D;porn;tig-biddies.com
 + [HASH] DBL;I;malware;198.51.100.42
 
   + **enabled** : *1* - ***1** or **0**, indicates an **enabled/disabled** rule.*
