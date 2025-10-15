@@ -57,25 +57,21 @@ A rule **defines** a **domain** or **IP** that must be blocked.
 
   + **enabled** : *1* - ***1** or **0**, indicates an **enabled/disabled** rule.*
   + **date** : *2025-09-05-17:18* - *The **date** when the **rule** was **added** to the blacklist.*
-  + **src** : *firebog* - *The **source** where the rule **originates** from.*
+  + **src** : *rpilist* - *The **source** where the rule **originates** from.*
 
 # 🛠️ **Redis-ctl** 🛠️
 
-***Note**: This tool still contains parts of a temporarily removed feature, the handling of v4 and v6 separately for domains.*
-
 ```
-This is a command-line tool used to manipulate the Redis blacklist
+This is a command-line tool used to edit the blacklist.
 
 Usage: redis-ctl <PATH_TO_CONFILE> <COMMAND>
 
 Commands:
-  add-domain           Add a new domain rule
-  remove-domain        Delete a domain rule or either of its v4 or v6 IPs
-  search-rules         Search rules by pattern
-  disable-rules        Disable rules by pattern
-  enable-rules         Enable rules by pattern
-  add-ips              Add new IP rules
-  remove-ips           Remove IP rules
+  add                  Add a new custom rule
+  remove               Delete a rule
+  search               Search rules by pattern
+  disable              Disable rules by pattern
+  enable               Enable rules by pattern
   feed-filter          Feed rules to a filter from a file
   feed-from-downloads  Feed rules from downloads
   help                 Print this message or the help of the given subcommand(s)

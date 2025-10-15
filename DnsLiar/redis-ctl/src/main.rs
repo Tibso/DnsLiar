@@ -3,7 +3,7 @@
 mod commands;
 mod modules;
 
-use crate::{commands::{Args, Commands}, modules::rules};
+use crate::{commands::Args, modules::rules};
 use dnsliar::config::Config;
 
 use clap::Parser;
@@ -50,48 +50,11 @@ fn main() -> ExitCode {
         }
     };
 
-    // Second argument should be the command to use
-    // Each element of the Commands enum calls its own function
-    let result = match args.command {
-        //Commands::ClearStats { pattern }
-        //    => stats::clear(&mut connection, daemon_id, &pattern),
-        //
-        //Commands::ShowStats { pattern }
-        //    => stats::show(&mut connection, daemon_id, &pattern),
-
-        Commands::SearchRules { filter, domain }
-            => rules::search(&mut con, &filter, &domain),
-
-        Commands::DisableRules { filter, pattern }
-            => rules::disable(&mut con, &filter, &pattern),
-
-        Commands::EnableRules { filter, pattern }
-            => rules::enable(&mut con, &filter, &pattern),
-
-        Commands::AddIps { source, filter, ttl, ips }
-            => rules::add_ips(&mut con, &source, &filter, &ttl, ips),
-
-        Commands::RemoveIps { filter, ips }
-            => rules::remove_ips(&mut con, &filter, ips),
-
-        Commands::FeedFilter { path_to_file, source, filter, ttl }
-            => rules::feed_filter(&mut con, &path_to_file, &source, &filter, &ttl),
-
-        Commands::FeedFromDownloads { path_to_file, ttl }
-            => rules::feed_from_downloads(&mut con, &path_to_file, &ttl),
-
-        Commands::AddDomain { filter, source, domain, ttl, ip1, ip2 }
-            => rules::add_domain(&mut con, &filter, &source, &domain, &ttl, ip1, ip2),
-
-        Commands::RemoveDomain { filter, domain, ip_ver }
-            => rules::remove_domain(&mut con, &filter, &domain, ip_ver),
-    };
-
-    match result {
-        Ok(exitcode) => exitcode,
+    match commands::handle_args(&mut con, args) {
         Err(e) => {
             println!("{e}");
             ExitCode::from(1)
-        }
+        },
+        Ok(exitcode) => exitcode
     }
 }

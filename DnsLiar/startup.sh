@@ -9,7 +9,7 @@ MARKER_FILE=/var/lib/dnsliar/.blacklist_initialized
 
 if [ ! -f "$MARKER_FILE" ]; then
   echo "Running blacklist initialization..."
-  while ! /usr/local/bin/redis-ctl /etc/dnsliar/dnsliar.conf feed-from-downloads /var/lib/dnsliar/blacklist_sources.json 3M; do
+  while ! /usr/local/bin/redis-ctl /etc/dnsliar/dnsliar.conf feed-from-downloads /var/lib/dnsliar/blacklist_sources.json; do
     echo "Blacklist initialization failed! Retrying in 10 seconds..."
     sleep 10
   done

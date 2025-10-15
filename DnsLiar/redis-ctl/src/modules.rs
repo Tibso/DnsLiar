@@ -13,16 +13,16 @@ fn get_date() -> String {
 /// calculate future epoch from time abbreviation
 fn time_abrv_to_secs(time_abrv: &str) -> Option<i64> {
     if time_abrv.len() != 2 {
-        return None
+        return None;
     }
 
     let (num_str, unit) = time_abrv.split_at(1);
     let Ok(num) = num_str.parse::<u64>() else {
-        return None
+        return None;
     };
     
     if unit.len() != 1 {
-        return None
+        return None;
     }
     let secs = match unit.as_bytes()[0] as char {
         's' => num,
@@ -36,28 +36,28 @@ fn time_abrv_to_secs(time_abrv: &str) -> Option<i64> {
     };
 
     let Ok(secs) = i64::try_from(secs) else {
-        return None
+        return None;
     };
 
     Some(secs)
 }
 
-fn is_valid_domain(domain: &str) -> bool {
-    if domain.len() > 253 {
-        return false
+fn is_valid_domain(s: &str) -> bool {
+    if s.len() > 253 {
+        return false;
     }
 
-    if !domain.chars().all(|c|
+    if !s.chars().all(|c|
         c.is_ascii_alphanumeric() || c == '-' || c == '.')
     {
-        return false
+        return false;
     }
 
-    let labels: Vec<&str> = domain.split('.').collect();
+    let labels: Vec<&str> = s.split('.').collect();
     if let Some(tld) = labels.last()
         && tld.len() < 2
     {
-        return false
+        return false;
     }
 
     if labels.iter().any(|label| label.is_empty()
@@ -65,10 +65,16 @@ fn is_valid_domain(domain: &str) -> bool {
         || label.starts_with('-')
         || label.ends_with('-')
     ) {
-        return false
+        return false;
     } 
-
     true
+}
+
+fn has_redis_wildcard(s: &str) -> bool {
+    if s.contains(['*', '?', '[', ']', '^']) {
+        return true;
+    }
+    false
 }
 
 fn is_public_ip(ip: &IpAddr) -> bool {
