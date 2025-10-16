@@ -55,9 +55,9 @@ A rule **defines** a **domain** or **IP** that must be blocked.
 + [HASH] DBL;D;porn;tig-biddies.com
 + [HASH] DBL;I;malware;198.51.100.42
 
-  + **enabled** : *1* - ***1** or **0**, indicates an **enabled/disabled** rule.*
-  + **date** : *2025-09-05-17:18* - *The **date** when the **rule** was **added** to the blacklist.*
-  + **src** : *rpilist* - *The **source** where the rule **originates** from.*
+  + **enabled** : 1 - ***1** or **0**, indicates an **enabled/disabled** rule.*
+  + **date** : 2025-09-05-17:18 - *The **date** when the **rule** was **added** to the blacklist.*
+  + **src** : rpilist - *The **source** where the rule **originates** from.*
 
 # 🛠️ **Redis-ctl** 🛠️
 

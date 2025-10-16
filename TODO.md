@@ -1,5 +1,6 @@
 # For both
 
+- write tests
 - decide whether updating DB should be a task inside dnsliar or it should use the external ctl tool
 
 Possible future improvements:
@@ -9,7 +10,6 @@ Possible future improvements:
 
 # dnsliar
 
-- add a debug level of log? configure a default level in docker-compose
 - config should allow the possibility of subscribing to all available filters
 - graceful shutdown
 - implement commented features
