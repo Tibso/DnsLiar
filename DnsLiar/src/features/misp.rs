@@ -1,7 +1,7 @@
-use crate::VERSION;
+use crate::{config, errors::{DnsLiarResult, DnsLiarError}, VERSION};
 
 use time::OffsetDateTime;
-use redis::{aio::ConnectionManager, pipe, Pipeline, RedisError};
+use redis::{aio::ConnectionManager, pipe, Pipeline, RedisResult};
 use tokio::time::{sleep, Duration};
 use serde_json::{json, Value};
 use serde::Deserialize;
@@ -21,7 +21,7 @@ pub struct MispAPIConf {
     /// Update frequency in seconds
     ///
     /// TODO: Might change this to minutes in the future to simplify configuration file
-    update_freq_secs: u64,
+    update_freq: String,
     
     /// Max age of attributes fetched
     ///
@@ -35,8 +35,8 @@ pub struct MispAPIConf {
 
     /// Retention time of the MISP records
     ///
-    /// TODO: Might change this to minutes in the future to simplify configuration file
-    retention_time_secs: i64
+    /// Example: "3M" to keep records for 3 months
+    retention_time: String
 }
 
 /// Simplified MISP Attribute Item
@@ -49,14 +49,22 @@ struct MispItem {
 pub async fn update(
     misp_api_conf: MispAPIConf,
     mut redis_mngr: ConnectionManager
-) {
+) -> DnsLiarResult<()> {
     let client = Client::new();
-    let MispAPIConf { update_freq_secs, request_item_limit, request_timestamp, .. } = misp_api_conf;
+    let MispAPIConf { update_freq, request_item_limit, request_timestamp, retention_time, .. } = misp_api_conf;
 
+    let secs_to_expiry = match config::time_abrv_to_secs(&retention_time) {
+        Err(e) => return Err(DnsLiarError::MispTaskFailed(format!("Could not convert retention time abbreviation to secs: {e}"))),
+        Ok(secs) => secs
+    };
+    let update_freq_secs = match config::time_abrv_to_secs(&update_freq) {
+        Err(e) => return Err(DnsLiarError::MispTaskFailed(format!("Could not convert update frequency time abbreviation to secs: {e}"))),
+        Ok(secs) => secs
+    };
     let date: String = {
         let now = OffsetDateTime::now_utc();
         format!("{:4}-{:02}-{:02}-{:02}:{:02}",
-            now.year(), now.month(), now.day(), now.hour(),now.minute())
+            now.year(), now.month(), now.day(), now.hour(), now.minute())
     };
     let fields = [("enabled","1"),("date",&date),("src","misp")];
 
@@ -90,7 +98,7 @@ pub async fn update(
                 Ok(json) => json,
                 Err(e) => {
                     error!("{err_fmt}{e}");
-                    break
+                    break;
                 }
             };
 
@@ -99,11 +107,11 @@ pub async fn update(
                 .and_then(|a| a.as_array())
             else {
                 error!("{err_fmt}Response JSON not formatted as expected");
-                break
+                break;
             };
             if attributes.is_empty() {
                 info!("No new MISP records to add");
-                break
+                break;
             }
 
             // items should be limited to i32
@@ -124,9 +132,9 @@ pub async fn update(
                 .into_values()
                 .collect();
 
-            if let Err(e) = pipe_items(&mut pipe, items, &fields, misp_api_conf.retention_time_secs) {
+            if let Err(e) = pipe_items(&mut pipe, items, &fields, secs_to_expiry as i64) {
                 error!("{err_fmt}{e}");
-                break
+                break;
             }
 
             if ! pipe.is_empty() {
@@ -141,7 +149,7 @@ pub async fn update(
                     Err(e) => {
                         error!("{err_fmt}{e}");
                         request_page += 1;
-                        continue
+                        continue;
                     }
                 }
                 pipe.clear();
@@ -186,7 +194,7 @@ pub async fn update(
 async fn compute_pipe(
     redis_mngr: &mut ConnectionManager,
     pipe: &mut Pipeline
-) -> Result<(u64, u64, u64), RedisError> {
+) -> RedisResult<(u64, u64, u64)> {
     let results = pipe.query_async::<Vec<(String, u8)>>(redis_mngr).await?;
     let results_cnt = results.len();
     
@@ -220,7 +228,7 @@ fn pipe_items(
     pipe: &mut Pipeline,
     items: Vec<MispItem>,
     fields: &[(&str,&str); 3],
-    secs_3months: i64
+    secs_to_expiry: i64
 ) -> Result<(), Box<dyn Error>> {
     for item in items {
         match item.typ.as_str() {
@@ -231,10 +239,9 @@ fn pipe_items(
 
                 pipe
                     .hset_multiple(&domain_key, fields)
-                    .expire(domain_key, secs_3months);
-                pipe
+                    .expire(domain_key, secs_to_expiry)
                     .hset_multiple(&ip_key, fields)
-                    .expire(ip_key, secs_3months);
+                    .expire(ip_key, secs_to_expiry);
             },
             "domain" | "hostname" => {
                 let domain = item.val;
@@ -242,7 +249,7 @@ fn pipe_items(
                 
                 pipe
                     .hset_multiple(&domain_key, fields)
-                    .expire(domain_key, secs_3months);
+                    .expire(domain_key, secs_to_expiry);
             },
             "ip-src" | "ip-dst" => {
                 let ip = item.val;
@@ -250,7 +257,7 @@ fn pipe_items(
 
                 pipe
                     .hset_multiple(&ip_key, fields)
-                    .expire(ip_key, secs_3months);
+                    .expire(ip_key, secs_to_expiry);
             },
             _ => return Err(format!("Unexpected attribute type: {}", item.typ).into())
         }

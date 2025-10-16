@@ -1,3 +1,5 @@
+use dnsliar::config::time_abrv_to_secs;
+
 use redis::{Commands, Connection, RedisResult, pipe};
 use serde::Deserialize;
 use std::{
@@ -5,9 +7,7 @@ use std::{
     net::IpAddr, path::PathBuf, process::ExitCode
 };
 
-use crate::modules::has_redis_wildcard;
-
-use super::{get_date, is_valid_domain, is_public_ip, time_abrv_to_secs};
+use super::{get_date, is_valid_domain, is_public_ip, has_redis_wildcard};
 
 #[derive(Deserialize)]
 struct SourcesLists {
@@ -41,11 +41,14 @@ pub fn add(
     let () = con.hset_multiple(&key, &items)?;
 
     if let Some(ttl) = ttl {
-        let Some(secs_to_expiry) = time_abrv_to_secs(ttl) else {
-            println!("ERR: Given TTL is not properly formatted or is too big\n");
-            return Ok(ExitCode::from(65));
+        let secs_to_expiry = match time_abrv_to_secs(ttl) {
+            Err(e) => {
+                println!("ERR: {e}\n");
+                return Ok(ExitCode::from(65))
+            },
+            Ok(secs) => secs
         };
-        let () = con.expire(&key, secs_to_expiry)?;
+        let () = con.expire(&key, secs_to_expiry as i64)?;
     }
 
     println!("Rule added: {key}\n");
@@ -229,9 +232,12 @@ fn feed_from_reader_ttl<R: BufRead>(
     ttl: &str
 ) -> RedisResult<ExitCode> {
     let date = get_date();
-    let Some(secs_to_expiry) = time_abrv_to_secs(ttl) else {
-        println!("ERR: Given TTL is not properly formatted or is too big");
-        return Ok(ExitCode::from(65));
+    let secs_to_expiry = match time_abrv_to_secs(ttl) {
+        Err(e) => {
+            println!("ERR: {e}\n");
+            return Ok(ExitCode::from(65))
+        },
+        Ok(secs) => secs
     };
     let fields = [("enabled", "1"), ("date", &date), ("src", src)];
 
@@ -269,11 +275,11 @@ fn feed_from_reader_ttl<R: BufRead>(
             if let Ok(ip) = item.parse::<IpAddr>() && is_public_ip(&ip) {
                 let key = format!("DBL;I;{filter};{item}");
                 pipe.hset_multiple(&key, &fields)
-                    .expire(&key, secs_to_expiry);
+                    .expire(&key, secs_to_expiry as i64);
             } else if is_valid_domain(item) {
                 let key = format!("DBL;D;{filter};{item}");
                 pipe.hset_multiple(&key, &fields)
-                    .expire(&key, secs_to_expiry);
+                    .expire(&key, secs_to_expiry as i64);
             }
 
             let pipe_len = pipe.len();

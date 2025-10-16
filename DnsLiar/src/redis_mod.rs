@@ -1,10 +1,10 @@
-use crate::errors::DnsBlrsResult;
+use crate::errors::DnsLiarResult;
 
 use redis::{aio::ConnectionManager, Client};
 use tracing::info;
 
 /// Builds the Redis connection manager
-pub async fn build_manager(redis_addr: &str) -> DnsBlrsResult<ConnectionManager> {
+pub async fn build_manager(redis_addr: &str) -> DnsLiarResult<ConnectionManager> {
     // A client is built and probes the Redis server to check its availability
     let client = Client::open(format!("redis://{redis_addr}/"))?;
 
@@ -19,7 +19,7 @@ pub async fn build_manager(redis_addr: &str) -> DnsBlrsResult<ConnectionManager>
 //fn prepare_stats(
 //    daemon_id: &str,
 //    ip: &str
-//) -> DnsBlrsResult<(u64, String)> {
+//) -> DnsLiarResult<(u64, String)> {
 //    // The current time is fetched and converted to EPOCH in seconds
 //    let time_epoch = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
 //    let stats_key = format!("DBL;stats;{daemon_id};{ip}");
@@ -32,7 +32,7 @@ pub async fn build_manager(redis_addr: &str) -> DnsBlrsResult<ConnectionManager>
 //    manager: &mut ConnectionManager,
 //    daemon_id: &str,
 //    ip: IpAddr
-//) -> DnsBlrsResult<()> {
+//) -> DnsLiarResult<()> {
 //    let (time_epoch, stats_key) = prepare_stats(daemon_id, ip.to_string().as_str())?;
 //
 //    let () = manager.hset(stats_key.clone(), "last_seen", time_epoch).await?;
@@ -53,7 +53,7 @@ pub async fn build_manager(redis_addr: &str) -> DnsBlrsResult<ConnectionManager>
 //    daemon_id: &str,
 //    ip: IpAddr,
 //    rule: &str
-//) -> DnsBlrsResult<()> {
+//) -> DnsLiarResult<()> {
 //    let (time_epoch, stats_key) = prepare_stats(daemon_id, ip.to_string().as_str())?;
 //
 //    let () = manager.hset(stats_key, "last_match", time_epoch).await?;

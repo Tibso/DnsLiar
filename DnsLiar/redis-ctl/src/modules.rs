@@ -10,38 +10,6 @@ fn get_date() -> String {
         now.year(), now.month(), now.day(), now.hour(), now.minute())
 }
 
-/// calculate future epoch from time abbreviation
-fn time_abrv_to_secs(time_abrv: &str) -> Option<i64> {
-    if time_abrv.len() != 2 {
-        return None;
-    }
-
-    let (num_str, unit) = time_abrv.split_at(1);
-    let Ok(num) = num_str.parse::<u64>() else {
-        return None;
-    };
-    
-    if unit.len() != 1 {
-        return None;
-    }
-    let secs = match unit.as_bytes()[0] as char {
-        's' => num,
-        'm' => num * 60,
-        'h' => num * 3600,
-        'd' => num * 86400,
-        'w' => num * 604800,
-        'M' => num * 2678400,
-        'y' => num * 31536000,
-        _ => return None
-    };
-
-    let Ok(secs) = i64::try_from(secs) else {
-        return None;
-    };
-
-    Some(secs)
-}
-
 fn is_valid_domain(s: &str) -> bool {
     if s.len() > 253 {
         return false;

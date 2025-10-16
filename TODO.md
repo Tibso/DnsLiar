@@ -9,7 +9,6 @@ Possible future improvements:
 
 # dnsliar
 
-- TTL and retention time should handle definition such as "1d","1m","1y"
 - add a debug level of log? configure a default level in docker-compose
 - config should allow the possibility of subscribing to all available filters
 - graceful shutdown

@@ -4,15 +4,16 @@ use redis::RedisError;
 use hickory_proto::error::ProtoError;
 use hickory_resolver::error::ResolveError;
 
-pub type DnsBlrsResult<T> = result::Result<T, DnsBlrsError>;
+pub type DnsLiarResult<T> = result::Result<T, DnsLiarError>;
 
 /// Custom error type
-pub enum DnsBlrsError {
+pub enum DnsLiarError {
     InvalidOpCode(u8),
     MessageTypeNotQuery,
     SocketBinding,
     SocketFilters,
     NoQueryInRequest,
+    MispTaskFailed(String),
 
     Redis(RedisError),
     IO(io::Error),
@@ -21,39 +22,40 @@ pub enum DnsBlrsError {
     Proto(ProtoError)
 }
 
-impl fmt::Display for DnsBlrsError {
+impl fmt::Display for DnsLiarError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            DnsBlrsError::InvalidOpCode(code) => write!(f, "Opcode received '{code}' was not query (0)"),
-            DnsBlrsError::MessageTypeNotQuery => write!(f, "Message type received was not query"),
-            DnsBlrsError::SocketBinding => write!(f, "Failed to bind any socket"),
-            DnsBlrsError::SocketFilters => write!(f, "Failed to find filters for a socket"),
-            DnsBlrsError::NoQueryInRequest => write!(f, "No query found in request"),
-            DnsBlrsError::Redis(e) => write!(f, "A Redis error occured: {e}"),
-            DnsBlrsError::IO(e) => write!(f, "An IO error occured: {e}"),
-            DnsBlrsError::Resolver(e) => write!(f, "A Resolver error occured: {e}"),
-            DnsBlrsError::Proto(e) => write!(f, "A Proto error occured: {e}")
+            DnsLiarError::InvalidOpCode(code) => write!(f, "Opcode received '{code}' was not query (0)"),
+            DnsLiarError::MessageTypeNotQuery => write!(f, "Message type received was not query"),
+            DnsLiarError::SocketBinding => write!(f, "Failed to bind any socket"),
+            DnsLiarError::SocketFilters => write!(f, "Failed to find filters for a socket"),
+            DnsLiarError::NoQueryInRequest => write!(f, "No query found in request"),
+            DnsLiarError::MispTaskFailed(e) => write!(f, "Misp task failed: {e}"),
+            DnsLiarError::Redis(e) => write!(f, "A Redis error occured: {e}"),
+            DnsLiarError::IO(e) => write!(f, "An IO error occured: {e}"),
+            DnsLiarError::Resolver(e) => write!(f, "A Resolver error occured: {e}"),
+            DnsLiarError::Proto(e) => write!(f, "A Proto error occured: {e}")
         }
     }
 }
 
-impl From<RedisError> for DnsBlrsError {
+impl From<RedisError> for DnsLiarError {
     fn from(e: RedisError) -> Self {
-        DnsBlrsError::Redis(e)
+        DnsLiarError::Redis(e)
     }
 }
-impl From<ResolveError> for DnsBlrsError {
+impl From<ResolveError> for DnsLiarError {
     fn from(e: ResolveError) -> Self {
-        DnsBlrsError::Resolver(e)
+        DnsLiarError::Resolver(e)
     }
 }
-impl From<ProtoError> for DnsBlrsError {
+impl From<ProtoError> for DnsLiarError {
     fn from(e: ProtoError) -> Self {
-        DnsBlrsError::Proto(e)
+        DnsLiarError::Proto(e)
     }
 }
-impl From<io::Error> for DnsBlrsError {
+impl From<io::Error> for DnsLiarError {
     fn from(e: io::Error) -> Self {
-        DnsBlrsError::IO(e)
+        DnsLiarError::IO(e)
     }
 }

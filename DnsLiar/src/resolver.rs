@@ -1,4 +1,4 @@
-use crate::errors::{DnsBlrsError, DnsBlrsResult};
+use crate::errors::{DnsLiarError, DnsLiarResult};
 
 use std::{net::ToSocketAddrs, sync::Arc};
 use hickory_proto::{
@@ -73,7 +73,7 @@ pub async fn resolve(
     request: &Request,
     wants_dnssec: bool,
     header: &mut Header
-) -> DnsBlrsResult<Records> {
+) -> DnsLiarResult<Records> {
     let (query_name, qtype) = {
         let query = request.query();
         (query.name(), query.query_type())
@@ -92,7 +92,7 @@ pub async fn resolve(
                         if matches!(response_code, ResponseCode::NXDomain | ResponseCode::NoError | ResponseCode::ServFail) {
                             header.set_response_code(*response_code);
                         } else {
-                            return Err(DnsBlrsError::Proto(proto_err.clone()))
+                            return Err(DnsLiarError::Proto(proto_err.clone()))
                         }
                         if let Some(soa) = soa {
                             sorted_records.soas.push(Record::from_rdata(query_name.into(), TTL_1H, soa.clone().into_data().into_rdata()));
@@ -104,9 +104,9 @@ pub async fn resolve(
                             }
                         }
                     },
-                _ => return Err(DnsBlrsError::Proto(proto_err.clone()))
+                _ => return Err(DnsLiarError::Proto(proto_err.clone()))
             },
-            _ => return Err(DnsBlrsError::Resolver(e.clone()))
+            _ => return Err(DnsLiarError::Resolver(e.clone()))
         },
         Ok(lookup) => {
             header.set_response_code(ResponseCode::NoError);

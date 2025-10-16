@@ -1,5 +1,5 @@
 use crate::{
-    errors::{DnsBlrsError, DnsBlrsResult},
+    errors::{DnsLiarError, DnsLiarResult},
     handler::Handler, features::misp::MispAPIConf, config
 };
 
@@ -79,22 +79,19 @@ pub fn init_config() -> Result<Config, ExitCode> {
 pub async fn setup_binds(
     srv: &mut ServerFuture<Handler>,
     services: Vec<Service>,
-) -> DnsBlrsResult<()> {
+) -> DnsLiarResult<()> {
     let (mut total, mut successful): (u32, u32) = (0, 0);
-
     for service in services {
         for bind in service.binds {
             for bind_protocol in bind.protocols {
                 total += 1;
                 let socket_addr = bind.socket_address;
-
                 let result = match bind_protocol {
                     BindProtocol::Udp => UdpSocket::bind(socket_addr).await
                         .map(|s| srv.register_socket(s)),
                     BindProtocol::Tcp => TcpListener::bind(socket_addr).await
                         .map(|l| srv.register_listener(l, TCP_TIMEOUT))
                 };
-
                 match result {
                     Ok(_) => successful += 1,
                     Err(e) => {
@@ -105,12 +102,50 @@ pub async fn setup_binds(
             }
         }
     }
-
     match (successful, total) {
         (s, t) if s == t => info!("All {t} binds were set"),
-        (0, _) => return Err(DnsBlrsError::SocketBinding),
+        (0, _) => return Err(DnsLiarError::SocketBinding),
         (s, t) => warn!("{s} out of {t} binds were set")
     }
-
     Ok(())
+}
+
+/// Convert time abbreviation to secs
+pub fn time_abrv_to_secs(s: &str) -> Result<u64, Box<dyn Error>> {
+    let mut num_buf = String::new();
+    let mut unit: Option<char> = None;
+    for c in s.chars() {
+        if c.is_ascii_digit() {
+            if unit.is_some() {
+                return Err("Digits found after time unit".into());
+            }
+            num_buf.push(c);
+        } else if unit.is_none() && c.is_alphabetic() {
+            unit = Some(c);
+        } else {
+            return Err("Invalid character or multiple time units found".into());
+        }
+    }
+    let Some(unit) = unit else {
+        return Err("No time unit found".into());
+    };
+    if num_buf.is_empty() {
+        return Err("No digits found".into());
+    }
+    let num = match num_buf.parse::<u64>() {
+        Err(e) => return Err(format!("Could not parse digits: {e}").into()),
+        Ok(num) => num
+    };
+
+    let secs = match unit {
+        'y' => num * 365 * 24 * 3600,
+        'M' => num * 30 * 24 * 3600,
+        'w' => num * 7 * 24 * 3600,
+        'd' => num * 24 * 3600,
+        'h' => num * 3600,
+        'm' => num * 60,
+        's' => num,
+        _ => return Err("Time unit is incorrect or not implemented".into())
+    };
+    Ok(secs)
 }

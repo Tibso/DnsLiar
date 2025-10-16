@@ -52,7 +52,11 @@ async fn main() -> ExitCode {
     if cfg!(feature = "misp")
         && let Some(misp_api_conf) = config.misp_api_conf
     {
-        tokio::spawn(misp::update(misp_api_conf, redis_mngr.clone()));
+        tokio::spawn(async move {
+            if let Err(e) = misp::update(misp_api_conf, redis_mngr.clone()).await {
+                error!("{e}");
+            }
+        });
     }
 
     let signals_task = tokio::task::spawn(signals::handle(signals, resolver));

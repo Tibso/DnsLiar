@@ -1,4 +1,4 @@
-use crate::{config::Service, errors::{DnsBlrsError, DnsBlrsResult}, filtering, resolver};
+use crate::{config::Service, errors::{DnsLiarError, DnsLiarResult}, filtering, resolver};
 
 use std::{net::SocketAddr, sync::Arc};
 use hickory_proto::rr::RecordType;
@@ -30,14 +30,14 @@ impl Handler {
         &self,
         request: &Request,
         mut response: R
-    ) -> DnsBlrsResult<ResponseInfo> {
+    ) -> DnsLiarResult<ResponseInfo> {
         let op_code = request.op_code();
         if op_code != OpCode::Query {
-            return Err(DnsBlrsError::InvalidOpCode(op_code.into()))
+            return Err(DnsLiarError::InvalidOpCode(op_code.into()))
         }
         let message_type = request.message_type();
         if message_type != MessageType::Query {
-            return Err(DnsBlrsError::MessageTypeNotQuery)
+            return Err(DnsLiarError::MessageTypeNotQuery)
         }
 
         let mut builder = MessageResponseBuilder::from_message_request(request);
@@ -74,7 +74,7 @@ impl Handler {
             records.additional.iter()
         );
         response.send_response(msg).await
-            .map_err(DnsBlrsError::IO)
+            .map_err(DnsLiarError::IO)
     }
 }
 
@@ -98,7 +98,7 @@ impl RequestHandler for Handler {
                 let msg_stats = format!("request:{} src:{}://{} QUERY:{}",
                     request.id(), request_info.protocol, request_info.src, request_info.query
                 );
-                if matches!(e, DnsBlrsError::InvalidOpCode(_) | DnsBlrsError::MessageTypeNotQuery) {
+                if matches!(e, DnsLiarError::InvalidOpCode(_) | DnsLiarError::MessageTypeNotQuery) {
                     warn!("{msg_stats} | {e}");
                     header.set_response_code(ResponseCode::Refused);
                 } else {

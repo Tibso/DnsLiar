@@ -1,4 +1,4 @@
-use crate::{errors::{DnsBlrsError, DnsBlrsResult}, handler::Handler, resolver::Records};
+use crate::{errors::{DnsLiarError, DnsLiarResult}, handler::Handler, resolver::Records};
 
 use hickory_server::server::Request;
 use redis::pipe;
@@ -8,7 +8,7 @@ use tracing::info;
 pub async fn is_domain_blacklisted(
     handler: &Handler,
     request: &Request
-) -> DnsBlrsResult<bool> {
+) -> DnsLiarResult<bool> {
     let query = request.query();
     let request_info = request.request_info();
     let mut redis_mngr = handler.redis_mngr.clone();
@@ -20,7 +20,7 @@ pub async fn is_domain_blacklisted(
     let parts_len = parts.len();
     
     let socket_local_addr = request.socket_local_addr();
-    let filters = handler.find_filters(socket_local_addr).ok_or(DnsBlrsError::SocketFilters)?;
+    let filters = handler.find_filters(socket_local_addr).ok_or(DnsLiarError::SocketFilters)?;
 
     let mut pipe = pipe();
     let mut search_domain_parts = Vec::with_capacity(parts_len);
@@ -46,7 +46,7 @@ pub async fn have_blacklisted_ip(
     handler: &Handler,
     request: &Request,
     records: &Records
-) -> DnsBlrsResult<bool> {
+) -> DnsLiarResult<bool> {
     let request_info = request.request_info();
     let mut redis_mngr = handler.redis_mngr.clone();
 
@@ -58,7 +58,7 @@ pub async fn have_blacklisted_ip(
         let ip_string = ip.to_string();
 
         let socket_local_addr = request.socket_local_addr();
-        let filters = handler.find_filters(socket_local_addr).ok_or(DnsBlrsError::SocketFilters)?;
+        let filters = handler.find_filters(socket_local_addr).ok_or(DnsLiarError::SocketFilters)?;
         for filter in filters {
             let rule = format!("DBL;I;{filter};{ip_string}");
             pipe.hget(rule, "enabled");
@@ -94,7 +94,7 @@ pub async fn have_blacklisted_ip(
     //     let rdata = match rule_val.parse::<IpAddr>() {
     //         Ok(IpAddr::V4(ipv4)) => RData::A(rdata::a::A(ipv4)),
     //         Ok(IpAddr::V6(ipv6)) => RData::AAAA(rdata::aaaa::AAAA(ipv6)),
-    //         Err(_) => return Err(DnsBlrsError::from(DnsBlrsErrorKind::InvalidRule))
+    //         Err(_) => return Err(DnsLiarError::from(DnsLiarErrorKind::InvalidRule))
     //     };
     //     let mut response_records = ResponseRecords::new();
     //     response_records.answer.push(Record::from_rdata(query_name, TTL_1H, rdata));
