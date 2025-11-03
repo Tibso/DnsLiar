@@ -62,20 +62,23 @@ async fn main() -> ExitCode {
     let signals_task = tokio::task::spawn(signals::handle(signals, resolver));
 
     info!("Server started");
-    if let Err(e) = srv.block_until_done().await {
-        error!("An error occured while driving server future to completion: {e:?}");
-        return ExitCode::from(70) // SOFTWARE
-    };
+    tokio::select! {
+        biased;
 
-    // The code should not reach here because the service gets killed on systemctl stop or restart
-    // Need to implement graceful shutdown
-
-    signals_handler.close();
-    if let Err(e) = signals_task.await {
-        error!("An error occured while driving signals future to completion: {e:?}");
-        return ExitCode::from(70) // SOFTWARE
-    };
-
+        res = srv.block_until_done() => {
+            if let Err(e) = res {
+                error!("An error occured while driving server future to completion: {e:?}");
+                return ExitCode::from(70) // SOFTWARE
+            }
+        },
+        _ = signals_task => {
+            signals_handler.close();
+            if let Err(e) = srv.shutdown_gracefully().await {
+                error!("Could not shutdown gracefully: {e}");
+                return ExitCode::from(70) // SOFTWARE
+            }
+        }
+    }
     info!("Graceful shutdown completed");
     ExitCode::SUCCESS
 }

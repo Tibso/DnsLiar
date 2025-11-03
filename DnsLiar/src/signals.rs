@@ -2,24 +2,29 @@ use std::sync::Arc;
 use hickory_resolver::TokioAsyncResolver;
 use tracing::{info, error};
 use signal_hook_tokio::Signals;
-use signal_hook::consts::signal::SIGHUP;
+use signal_hook::consts::signal::{SIGHUP, SIGTERM, SIGINT};
 use futures_util::stream::StreamExt;
 
 pub fn instantiate() -> Option<Signals> {
-    Signals::new([SIGHUP]).ok()
+    Signals::new([SIGHUP, SIGTERM, SIGINT]).ok()
 }
 
 pub async fn handle(mut signals: Signals, resolver: Arc<TokioAsyncResolver>) {
     // Awaits for a signal to be captured
     while let Some(signal) = signals.next().await {
-        //    // SIGUSR2 clears the resolver cache
-        if signal == SIGHUP {
-            info!("Captured SIGHUP");
+        match signal {
+            SIGHUP => {
+                info!("Captured SIGHUP");
 
-            resolver.clear_cache();
-            info!("The resolver's cache was cleared");
-        } else {
-            error!("Unimplemented signal received: {signal:?}")
+                resolver.clear_cache();
+                info!("The resolver's cache was cleared");
+            },
+            SIGTERM | SIGINT => {
+                info!("Captured SIGTERM or SIGINT");
+                info!("Shutting down...");
+                break;
+            },
+            _ => error!("Unimplemented signal received: {signal:?}")
         }
     }
 }
